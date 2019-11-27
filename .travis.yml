@@ -10,8 +10,6 @@ cache:
   yarn: true
   directories:
     - node_modules
-before_install:
-  - npm update
 install:
   - yarn install
 script:
