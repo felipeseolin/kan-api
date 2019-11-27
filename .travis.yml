@@ -15,6 +15,4 @@ install:
 script:
   - yarn test
   - yarn run coveralls
-env:
-  - NODE_ENV=dev
-  - PORT=80
+  
