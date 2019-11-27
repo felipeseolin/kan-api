@@ -11,7 +11,7 @@ cache:
   directories:
     - node_modules
 before_install:
-  - yarn update
+  - npm update
 install:
   - yarn install
 script:
