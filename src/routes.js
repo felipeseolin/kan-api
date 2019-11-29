@@ -1,6 +1,4 @@
-const express = require('express');
-
-const routes = express.Router();
+const routes = require('express').Router();
 
 const BoardController = require('./controllers/BoardController');
 const ListController = require('./controllers/ListController');

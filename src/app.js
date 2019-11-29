@@ -4,21 +4,31 @@ const cors = require('cors');
 const routes = require('./routes');
 // Use .env file config
 require('dotenv').config();
+class AppController {
+  constructor() {
+    this.express = express();
+    this.express.set('port', process.env.PORT || 5000);
 
-const app = express();
+    this.middlewares();
+    this.routes();
+    this.database();
+  }
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+  middlewares() {
+    this.express.use(express.json());
+    this.express.use(express.urlencoded({ extended: false }));
+    this.express.use(cors());
+  }
 
-app.use(cors());
+  routes() {
+    this.express.use('/api', routes);
+  }
 
-mongoose.connect(process.env.DB_URL, {
-  useUnifiedTopology: true,
-});
+  database() {
+    mongoose.connect(process.env.DB_URL, {
+      useUnifiedTopology: true,
+    });
+  }
+}
 
-app.use('/api', routes);
-
-app.set('port', (process.env.PORT || 5000));
-app.listen(app.get('port'), () => {
-  console.log('Node app is running on port', app.get('port'));
-});
+module.exports = new AppController().express;
