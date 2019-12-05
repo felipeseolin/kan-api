@@ -21,10 +21,12 @@
     "testEnvironment": "node"
   },
   "dependencies": {
+    "body-parser": "^1.19.0",
     "cors": "^2.8.5",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
-    "mongoose": "^5.7.11"
+    "mongoose": "^5.7.11",
+    "redis": "^2.8.0"
   },
   "devDependencies": {
     "babel-eslint": "^10.0.3",
