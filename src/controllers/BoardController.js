@@ -45,12 +45,12 @@ module.exports = {
     return res.json(board);
   },
   async destroy(req, res) {
-    await Board.findByIdAndRemove(req.params.id);
+    const board = await Board.findByIdAndRemove(req.params.id);
     const lists = await List.find({ _board: req.params.id });
     lists.map(async list => await Card.deleteMany({ _list: list._id }));
     await List.deleteMany({ _board: req.params.id });
 
-    return res.sendStatus(HTTPCode.OK);
+    return res.status(HTTPCode.OK).json(board);
   },
   async all(req, res) {
     const boards = await Board.findById(req.params.id)
