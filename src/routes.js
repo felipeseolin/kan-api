@@ -1,5 +1,5 @@
 const routes = require('express').Router();
-
+const cache = require('./cache');
 const BoardController = require('./controllers/BoardController');
 const ListController = require('./controllers/ListController');
 const CardController = require('./controllers/CardController');
@@ -7,7 +7,7 @@ const CardController = require('./controllers/CardController');
 routes.get('/', (req, res) => res.send('Kan API'));
 
 // Board
-routes.get('/boards', BoardController.index);
+routes.get('/boards', cache.route('boards'), BoardController.index);
 routes.post('/boards', BoardController.store);
 routes.get('/boards/:id', BoardController.show);
 routes.patch('/boards/:id', BoardController.update);
