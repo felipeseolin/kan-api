@@ -13,7 +13,8 @@
     "start": "node src/server.js",
     "dev": "nodemon src/server.js --ignore __tests__",
     "lint": "eslint src -c .eslintrc.json --ext js,jsx",
-    "test": "jest --forceExit",
+    "test": "jest --detectOpenHandles --forceExit --testTimeout=10000",
+    "test:ci": "jest --ci --detectOpenHandles --forceExit --testTimeout=10000",
     "test:watch": "jest --watch",
     "coveralls": "jest --coverage && cat ./tests/coverage/lcov.info | coveralls"
   },
