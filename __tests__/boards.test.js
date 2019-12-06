@@ -3,50 +3,118 @@ const supertest = require('supertest');
 
 const req = supertest(app);
 
-describe('GET /boards', () => {
-  it('List all boards', async done => {
-    const res = await req.get('/api/boards');
-    expect(res.status).toBe(200);
-    done();
-  });
-});
-
-let board = {
+const BOARD_TO_BE_CREATED = {
   name: 'QUADRO DE TESTE',
   description: 'DESCRICAO',
 };
+let newBoard = null;
+// CREATE
 describe('POST /boards', () => {
-  it('Create a new board', async done => {
-    const res = await req.post('/api/boards').send(board);
-    board = res.body;
+  it('Creates a new board', async done => {
+    const res = await req.post('/api/boards').send(BOARD_TO_BE_CREATED);
+    newBoard = res.body;
+    // Check the status code
     expect(res.status).toBe(201);
+    // Check de body response
+    expect(newBoard._id).not.toBeNull();
+    expect(newBoard.name).toBe(BOARD_TO_BE_CREATED.name);
+    expect(newBoard.description).toBe(BOARD_TO_BE_CREATED.description);
+    expect(newBoard.lists.length).toBe(0);
+    expect(newBoard.createdAt).not.toBeNull();
+    expect(newBoard.updatedAt).not.toBeNull();
     done();
   });
 });
-
+// SHOW
 describe('GET /boards/:id', () => {
-  it(`Show board: ${board.name}`, async done => {
-    const res = await req.get(`/api/boards/${board._id}`);
+  it('Shows the board', async done => {
+    const res = await req.get(`/api/boards/${newBoard._id}`);
+    const showBoard = res.body;
+    // Check the status code
     expect(res.status).toBe(200);
+    // Check de body response
+    expect(showBoard._id).toBe(newBoard._id);
+    expect(showBoard.name).toBe(newBoard.name);
+    expect(showBoard.description).toBe(newBoard.description);
+    expect(showBoard.lists.length).toBe(newBoard.lists.length);
+    expect(new Date(showBoard.createdAt).getTime()).toBe(
+      new Date(newBoard.createdAt).getTime()
+    );
+    expect(new Date(showBoard.updatedAt).getTime()).toBe(
+      new Date(newBoard.updatedAt).getTime()
+    );
     done();
   });
 });
-
+// UPDATE
+const BOARD_TO_BE_UPDATED = {
+  name: 'NOME ATUALIZADO',
+  description: 'DESCRICAO ATUALIZADA',
+};
+let updatedBoard = null;
 describe('PATCH /boards/:id', () => {
-  it(`Update board: ${board.name}`, async done => {
+  it('Updates the board', async done => {
     const res = await req
-      .patch(`/api/boards/${board._id}`)
-      .send({ ...board, name: 'ATUALIZAÇÃO' });
-    board = res.body;
+      .patch(`/api/boards/${newBoard._id}`)
+      .send(BOARD_TO_BE_UPDATED);
+    updatedBoard = res.body;
+    // Check the status code
     expect(res.status).toBe(200);
+    // Check de body response
+    expect(updatedBoard._id).toBe(newBoard._id);
+    expect(updatedBoard.name).toBe(BOARD_TO_BE_UPDATED.name);
+    expect(updatedBoard.description).toBe(BOARD_TO_BE_UPDATED.description);
+    expect(updatedBoard.lists.length).toBe(newBoard.lists.length);
+    expect(new Date(updatedBoard.createdAt).getTime()).toBe(
+      new Date(newBoard.createdAt).getTime()
+    );
+    expect(new Date(updatedBoard.updatedAt).getTime()).not.toBe(
+      new Date(newBoard.updatedAt).getTime()
+    );
     done();
   });
 });
-
-describe('DELETE /boards/:id', () => {
-  it(`Delete board: ${board.name}`, async done => {
-    const res = await req.delete(`/api/boards/${board._id}`);
+// List
+describe('GET /boards', () => {
+  it('Lists all boards', async done => {
+    const res = await req.get('/api/boards');
+    const allBoards = res.body;
+    const lastBoard = allBoards.pop();
+    // Check the status code
     expect(res.status).toBe(200);
+    // Check de body response
+    expect(allBoards).not.toBeNull();
+    expect(lastBoard._id).toBe(updatedBoard._id);
+    expect(lastBoard.name).toBe(updatedBoard.name);
+    expect(lastBoard.description).toBe(updatedBoard.description);
+    expect(lastBoard.lists.length).toBe(updatedBoard.lists.length);
+    expect(new Date(lastBoard.createdAt).getTime()).toBe(
+      new Date(updatedBoard.createdAt).getTime()
+    );
+    expect(new Date(lastBoard.updatedAt).getTime()).toBe(
+      new Date(updatedBoard.updatedAt).getTime()
+    );
+    done();
+  });
+});
+// Delete
+describe('DELETE /boards/:id', () => {
+  it('Delete the board', async done => {
+    const res = await req.delete(`/api/boards/${updatedBoard._id}`);
+    const deletedBoard = res.body;
+    // Check the status code
+    expect(res.status).toBe(200);
+    // Check de body response
+    expect(deletedBoard._id).toBe(updatedBoard._id);
+    expect(deletedBoard.name).toBe(updatedBoard.name);
+    expect(deletedBoard.description).toBe(updatedBoard.description);
+    expect(deletedBoard.lists.length).toBe(updatedBoard.lists.length);
+    expect(new Date(deletedBoard.createdAt).getTime()).toBe(
+      new Date(updatedBoard.createdAt).getTime()
+    );
+    expect(new Date(deletedBoard.updatedAt).getTime()).toBe(
+      new Date(updatedBoard.updatedAt).getTime()
+    );
     done();
   });
 });
