@@ -20,3 +20,9 @@ services:
     image: "mvertes/alpine-mongo"
     ports:
       - "27017:27017"
+  redis:
+    container_name: redis
+    image: redis:5.0.7-alpine
+    command: redis-server --requirepass redis
+    ports:
+      - "6379:6379"
