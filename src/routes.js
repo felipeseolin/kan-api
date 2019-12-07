@@ -5,9 +5,12 @@ const uncache = require('./middlewares/uncache');
 const BoardController = require('./controllers/BoardController');
 const ListController = require('./controllers/ListController');
 const CardController = require('./controllers/CardController');
+const UserController = require('./controllers/UserController');
 
 routes.get('/', (req, res) => res.send('Kan API'));
 
+// User
+routes.post('/register', UserController.register);
 // Board
 routes.get('/boards', cache.route(constants.BOARDS), BoardController.index);
 routes.post('/boards', uncache(constants.BOARDS_ALLL_BOARDS), BoardController.store);
@@ -27,5 +30,7 @@ routes.post('/cards', uncache(constants.CARDS_LISTS_BOARDS), CardController.stor
 routes.get('/cards/:id', uncache(constants.CARDS_LISTS_BOARDS), CardController.show);
 routes.patch('/cards/:id', uncache(constants.CARDS_LISTS_BOARDS), CardController.update);
 routes.delete('/cards/:id', uncache(constants.CARDS_LISTS_BOARDS), CardController.destroy);
+// Clean Cache
+routes.get('/cleanCache', uncache(['*']), (req, res) => res.send('Cleaned all cache'));
 
 module.exports = routes;
