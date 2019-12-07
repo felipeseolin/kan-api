@@ -1,9 +1,4 @@
-require('dotenv').config();
-const cache = require('express-redis-cache')({
-  host: process.env.REDIS_HOST,
-  port: process.env.REDIS_PORT,
-  auth_pass: process.env.REDIS_PASSWORD,
-  expire: 60,
-});
+const cacheConfig = require('../config/cacheConfig');
+const cache = require('express-redis-cache')(cacheConfig);
 
 module.exports = cache;
