@@ -10,13 +10,6 @@ const Board = mongoose.model('Board');
 const List = mongoose.model('List');
 const Card = mongoose.model('Card');
 
-function invalidateBoardCache() {
-  cache.del('boards', (error, deleted) => {
-    if (error) console.log(error);
-    return deleted;
-  });
-}
-
 module.exports = {
   async index(req, res) {
     const boards = await Board.find();
@@ -29,8 +22,6 @@ module.exports = {
     if (!board) {
       return res.sendStatus(HTTPCode.BAD_REQUEST);
     }
-    // Invalidate cache
-    invalidateBoardCache();
 
     return res.status(HTTPCode.CREATED).json(board);
   },
@@ -51,8 +42,6 @@ module.exports = {
     if (!board) {
       return res.status(HTTPCode.BAD_REQUEST).json(board);
     }
-    // Invalidate cache
-    invalidateBoardCache();
 
     return res.json(board);
   },
@@ -61,8 +50,6 @@ module.exports = {
     const lists = await List.find({ _board: req.params.id });
     lists.map(async list => await Card.deleteMany({ _list: list._id }));
     await List.deleteMany({ _board: req.params.id });
-    // Invalidate cache
-    invalidateBoardCache();
 
     return res.status(HTTPCode.OK).json(board);
   },
