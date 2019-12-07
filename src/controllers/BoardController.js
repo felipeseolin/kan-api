@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 
+const cache = require('../cache');
 const HTTPCode = require('../utils/HTTPCode');
 const BoardInit = require('../models/Board');
 const ListInit = require('../models/List');
@@ -53,13 +54,12 @@ module.exports = {
     return res.status(HTTPCode.OK).json(board);
   },
   async all(req, res) {
-    const boards = await Board.findById(req.params.id)
-      .populate({
-        path: 'lists',
-        populate: {
-          path: 'cards'
-        }
-      });
+    const boards = await Board.findById(req.params.id).populate({
+      path: 'lists',
+      populate: {
+        path: 'cards',
+      },
+    });
     return res.json(boards);
   },
 };
