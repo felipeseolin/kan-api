@@ -11,6 +11,7 @@ routes.get('/', (req, res) => res.send('Kan API'));
 
 // User
 routes.post('/register', UserController.register);
+routes.post('/authenticate', UserController.authenticate);
 // Board
 routes.get('/boards', cache.route(constants.BOARDS), BoardController.index);
 routes.post('/boards', uncache(constants.BOARDS_ALLL_BOARDS), BoardController.store);
