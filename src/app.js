@@ -26,6 +26,7 @@ class AppController {
 
   database() {
     mongoose.connect(process.env.DB_URL, {
+      poolSize: process.env.DB_POOL_SIZE,
       useUnifiedTopology: true,
     });
   }
