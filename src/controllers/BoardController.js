@@ -37,11 +37,10 @@ module.exports = {
   },
   async show(req, res) {
     const board = await Board.findById(req.params.id);
-
     if (!board) {
       return res.sendStatus(HTTPCode.NOT_FOUND).json(board);
     }
-    return res.json(board);
+    return res.status(HTTPCode.OK).json(board);
   },
   async update(req, res) {
     // Update Board
@@ -53,13 +52,19 @@ module.exports = {
       return res.status(HTTPCode.BAD_REQUEST).json(board);
     }
 
-    return res.json(board);
+    return res.status(HTTPCode.OK).json(board);
   },
   async destroy(req, res) {
+    // Delete the board
     const board = await Board.findByIdAndRemove(req.params.id);
+    // Delete all lists and cards
     const lists = await List.find({ _board: req.params.id });
     lists.map(async list => await Card.deleteMany({ _list: list._id }));
     await List.deleteMany({ _board: req.params.id });
+    // Delete from user
+    const user = await User.findById(req.userId);
+    user.boards = user.boards.filter(item => !item.equals(req.params.id));
+    user.save();
 
     return res.status(HTTPCode.OK).json(board);
   },
