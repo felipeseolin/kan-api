@@ -1,7 +1,8 @@
 const routes = require('express').Router();
-const cache = require('./cache');
+const cache = require('./middlewares/cache');
 const constants = require('./cache/constants');
 const uncache = require('./middlewares/uncache');
+const nameCache = require('./middlewares/nameCache');
 const auth = require('./middlewares/auth');
 
 const BoardController = require('./controllers/BoardController');
@@ -15,11 +16,7 @@ routes.get('/', (req, res) => res.send('Kan API'));
 routes.post('/register', UserController.register);
 routes.post('/authenticate', UserController.authenticate);
 // Board
-routes.get(
-  '/boards',
-  [auth, cache.route(constants.BOARDS)],
-  BoardController.index
-);
+routes.get('/boards', [auth, cache(constants.BOARDS)], BoardController.index);
 routes.post(
   '/boards',
   [auth, uncache(constants.BOARDS_ALLL_BOARDS)],
@@ -42,13 +39,13 @@ routes.delete(
 );
 routes.get(
   '/boards/all/:id',
-  [auth, cache.route(constants.ALLL_BOARDS)],
+  [auth, cache(constants.ALLL_BOARDS)],
   BoardController.all
 );
 // Lists
 routes.get(
   '/lists',
-  [auth, cache.route(constants.LISTS)],
+  [auth, cache(constants.LISTS)],
   ListController.index
 );
 routes.post(
@@ -74,7 +71,7 @@ routes.delete(
 // Cards
 routes.get(
   '/cards',
-  [auth, cache.route(constants.CARDS)],
+  [auth, cache(constants.CARDS)],
   CardController.index
 );
 routes.post(
