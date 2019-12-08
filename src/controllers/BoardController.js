@@ -5,23 +5,33 @@ const HTTPCode = require('../utils/HTTPCode');
 const BoardInit = require('../models/Board');
 const ListInit = require('../models/List');
 const CardInit = require('../models/Card');
+const UserInit = require('../models/User');
 
 const Board = mongoose.model('Board');
 const List = mongoose.model('List');
 const Card = mongoose.model('Card');
+const User = mongoose.model('User');
 
 module.exports = {
   async index(req, res) {
-    const boards = await Board.find();
+    const boards = await Board.find({ _user: req.userId });
     return res.json(boards);
   },
   async store(req, res) {
+    // Find User
+    const user = await User.findById(req.userId);
+    if (!user) {
+      return res.sendStatus(HTTPCode.UNAUTHORIZED);
+    }
     // Create Board
-    const board = await Board.create(req.body);
+    const board = await Board.create({ ...req.body, _user: req.userId });
     // Verify if the board is saved
     if (!board) {
       return res.sendStatus(HTTPCode.BAD_REQUEST);
     }
+    // Add board to user
+    user.boards.push(board);
+    user.save();
 
     return res.status(HTTPCode.CREATED).json(board);
   },
