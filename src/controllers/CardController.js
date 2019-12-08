@@ -2,13 +2,28 @@ const mongoose = require('mongoose');
 
 const HTTPCode = require('../utils/HTTPCode');
 const CardInit = require('../models/Card');
+const ListInit = require('../models/List');
+const UserInit = require('../models/User');
 
 const Card = mongoose.model('Card');
 const List = mongoose.model('List');
+const User = mongoose.model('User');
 
 module.exports = {
   async index(req, res) {
-    const cards = await Card.find();
+    const cards = await User.find({ _id: req.userId })
+      .select('cards')
+      .populate({
+        path: 'boards',
+        select: 'cards',
+        populate: {
+          path: 'lists',
+          select: 'cards',
+          populate: {
+            path: 'cards',
+          },
+        },
+      });
     return res.json(cards);
   },
   async store(req, res) {
