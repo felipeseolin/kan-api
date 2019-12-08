@@ -2,7 +2,6 @@ const routes = require('express').Router();
 const cache = require('./middlewares/cache');
 const constants = require('./cache/constants');
 const uncache = require('./middlewares/uncache');
-const nameCache = require('./middlewares/nameCache');
 const auth = require('./middlewares/auth');
 
 const BoardController = require('./controllers/BoardController');
