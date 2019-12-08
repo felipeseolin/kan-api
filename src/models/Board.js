@@ -11,6 +11,11 @@ const BoardSchema = new Schema({
     type: String,
     required: false,
   },
+  _user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   lists: [{
     type: Schema.Types.ObjectId,
     ref: 'List',
