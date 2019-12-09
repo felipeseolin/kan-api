@@ -21,13 +21,51 @@ function generateToken(params = {}) {
   });
 }
 
+function validate(name, email, password, passwordConfirm) {
+  let errors = [];
+
+  if (!name || name.trim().length === 0) {
+    errors = [...errors, 'Um nome é necessário.'];
+  }
+  if (name.length < 5) {
+    errors = [...errors, 'Um nome válido deve ter ao menos 5 caracteres.'];
+  }
+  if (!/^[a-zA-Z ]+$/.test(name)) {
+    errors = [...errors, 'Forneça um nome válido.'];
+  }
+  if (!email || email.trim().length === 0) {
+    errors = [...errors, 'É necessário inserir um e-mail.'];
+  }
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    errors = [...errors, 'Forneça um e-mail válido.'];
+  }
+  if (password !== passwordConfirm) {
+    errors = [...errors, 'As senhas fornecidas não conferem.'];
+  }
+  if (!password || password.trim().length === 0) {
+    errors = [...errors, 'É necessário inserir uma senha.'];
+  }
+  if (password && password.length < 6) {
+    errors = [...errors, 'A senha deve possuir ao mínimo 6 caracteres.'];
+  }
+
+  return errors;
+}
+
 module.exports = {
   async register(req, res) {
-    const { email } = req.body;
+    const { name, email, password, passwordConfirm } = req.body;
     if (await User.findOne({ email })) {
       return res
         .status(HTTPCode.BAD_REQUEST)
         .send({ error: 'User already exists' });
+    }
+    // Validate User
+    console.log(password);
+    console.log(passwordConfirm);
+    const error = validate(name, email, password, passwordConfirm);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
     }
     // Create User
     const user = await User.create(req.body);
