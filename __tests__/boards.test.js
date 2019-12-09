@@ -3,19 +3,7 @@ const app = require('../src/app');
 
 const req = supertest(app);
 
-// Login
-const user = {
-  name: 'Test',
-  email: 'test@test.com',
-  password: 'test123',
-};
-
-let token = { Authorization: '' };
-it('Do user login', async done => {
-  const res = await req.post('/api/authenticate').send(user);
-  token.Authorization = `Bearer ${res.body.token}`;
-  done();
-});
+const { token } = global;
 
 const BOARD_TO_BE_CREATED = {
   name: 'QUADRO DE TESTE',
@@ -30,7 +18,6 @@ describe('POST /boards', () => {
       .send(BOARD_TO_BE_CREATED)
       .set(token);
     newBoard = res.body;
-    console.log(newBoard);
     // Check the status code
     expect(res.status).toBe(201);
     // Check de body response
