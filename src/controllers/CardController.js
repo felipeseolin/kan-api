@@ -97,14 +97,14 @@ module.exports = {
     if (!card) {
       return res
         .status(HTTPCode.NOT_FOUND)
-        .send({ error: 'Cartão não encontrado' });
+        .send({ error: ['Cartão não encontrado'] });
     }
     // Find List
     const list = await List.findById(_list);
     if (!list) {
       return res
         .status(HTTPCode.NOT_FOUND)
-        .send({ error: 'Lista não encontrada' });
+        .send({ error: ['Lista não encontrada'] });
     }
     // Validate Card Update Request
     const error = validate(name, description, _list);
