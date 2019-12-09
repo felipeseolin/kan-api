@@ -33,14 +33,6 @@ function validate(name, description, board) {
   return errors;
 }
 
-function validateAndRedirect(req, res) {
-  const { name, description, _board } = req.body;
-  const error = validate(name, description, _board);
-  if (error.length > 0) {
-    return res.status(HTTPCode.BAD_REQUEST).send({ error });
-  }
-}
-
 module.exports = {
   async index(req, res) {
     const lists = await User.find({ _id: req.userId })
@@ -55,15 +47,19 @@ module.exports = {
     return res.json(lists);
   },
   async store(req, res) {
+    const { name, description, _board } = req.body;
     // Find Board
-    const board = await Board.findById(req.body._board);
+    const board = await Board.findById(_board);
     if (!board) {
       return res
         .status(HTTPCode.BAD_REQUEST)
         .send({ error: 'O quadro não existe' });
     }
     // Validation
-    validateAndRedirect(req, res);
+    const error = validate(name, description, _board);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Create List
     const list = await List.create(req.body);
     // Verify if the list is saved
@@ -84,9 +80,13 @@ module.exports = {
     return res.json(list);
   },
   async update(req, res) {
-    const { _board, ...rest } = req.body;
+    const { _board, board, ...rest } = req.body;
     // Validation
-    validateAndRedirect(req, res);
+    const { name, description } = req.body;
+    const error = validate(name, description, _board);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Create List
     const list = await List.findByIdAndUpdate(req.params.id, rest, {
       new: true,

@@ -57,15 +57,19 @@ module.exports = {
     return res.json(cards);
   },
   async store(req, res) {
+    const { name, description, _list } = req.body;
     // Find List
-    const list = await List.findById(req.body._list);
+    const list = await List.findById(_list);
     if (!list) {
       return res
         .status(HTTPCode.BAD_REQUEST)
         .send({ error: 'Lista não encontrada' });
     }
     // Validate Card
-    validateAndRedirect(req, res);
+    const error = validate(name, description, _list);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Create card
     const card = await Card.create(req.body);
     // Verify if card was created
@@ -86,20 +90,33 @@ module.exports = {
     return res.json(card);
   },
   async update(req, res) {
+    const { name, description, _list } = req.body;
     const cardId = req.params.id;
     // Find Card
     const card = await Card.findById(cardId);
+    if (!card) {
+      return res
+        .status(HTTPCode.NOT_FOUND)
+        .send({ error: 'Cartão não encontrado' });
+    }
+    // Find List
+    const list = await List.findById(_list);
+    if (!list) {
+      return res
+        .status(HTTPCode.NOT_FOUND)
+        .send({ error: 'Lista não encontrada' });
+    }
     // Validate Card Update Request
-    validateAndRedirect(req, res);
+    const error = validate(name, description, _list);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Verifica se há lista na requisição e atualiza
-    if (req.body._list) {
-      const listId = req.body._list;
-      // Find List
-      const list = await List.findById(listId);
+    if (_list) {
       // Change card's list
-      if (!card._list.equals(listId)) {
+      if (!card._list.equals(_list)) {
         const oldList = await List.findById(card._list);
-        const newList = await List.findById(listId);
+        const newList = await List.findById(_list);
 
         oldList.cards = oldList.cards.filter(item => !item.equals(cardId));
         oldList.save();
@@ -114,10 +131,12 @@ module.exports = {
     });
     // Check if updated
     if (!cardUpdated) {
-      return res.sendStatus(HTTPCode.BAD_REQUEST);
+      return res
+        .status(HTTPCode.BAD_REQUEST)
+        .send({ error: 'O cartão não foi atualizado' });
     }
 
-    return res.json(cardUpdated);
+    return res.status(HTTPCode.OK).json(cardUpdated);
   },
   async destroy(req, res) {
     // Delelete card

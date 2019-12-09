@@ -31,20 +31,13 @@ function validate(name, description) {
   return errors;
 }
 
-function validateAndRedirect(req, res) {
-  const { name, description } = req.body;
-  const error = validate(name, description);
-  if (error.length > 0) {
-    return res.status(HTTPCode.BAD_REQUEST).send({ error });
-  }
-}
-
 module.exports = {
   async index(req, res) {
     const boards = await Board.find({ _user: req.userId });
     return res.json(boards);
   },
   async store(req, res) {
+    const { name, description } = req.body;
     // Find User
     const user = await User.findById(req.userId);
     if (!user) {
@@ -53,7 +46,10 @@ module.exports = {
         .send({ error: 'Erro ao encontrar usuário' });
     }
     // Validate Board
-    validateAndRedirect(req, res);
+    const error = validate(name, description);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Create Board
     const board = await Board.create({ ...req.body, _user: req.userId });
     // Verify if the board is saved
@@ -76,9 +72,13 @@ module.exports = {
     return res.status(HTTPCode.OK).json(board);
   },
   async update(req, res) {
-    const { _user, user, ...rest } = req.params;
+    const { _user, user, ...rest } = req.body;
     // Validate Board
-    validateAndRedirect(req, res);
+    const { name, description } = rest;
+    const error = validate(name, description);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
+    }
     // Update Board
     const board = await Board.findByIdAndUpdate(req.params.id, rest, {
       new: true,
