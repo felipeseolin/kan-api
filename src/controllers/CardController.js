@@ -9,6 +9,36 @@ const Card = mongoose.model('Card');
 const List = mongoose.model('List');
 const User = mongoose.model('User');
 
+function validate(name, description, list) {
+  let errors = [];
+
+  if (!name || name.trim().length === 0) {
+    errors = [...errors, 'Um nome deve ser dado ao cartão.'];
+  }
+  if (name && name.length > 100) {
+    errors = [...errors, 'O nome deve ter ao máximo 100 caracteres.'];
+  }
+  if (name && name.length < 5) {
+    errors = [...errors, 'O nome deve ter ao mínimo 5 caracteres.'];
+  }
+  if (description && description.length > 250) {
+    errors = [...errors, 'A descrição deve ter ao máximo 250 caracteres.'];
+  }
+  if (!list) {
+    errors = [...errors, 'O cartão deve pertencer a uma lista'];
+  }
+
+  return errors;
+}
+
+function validateAndRedirect(req, res) {
+  const { name, description, _list } = req.body;
+  const error = validate(name, description, _list);
+  if (error.length > 0) {
+    res.status(HTTPCode.BAD_REQUEST).send({ error });
+  }
+}
+
 module.exports = {
   async index(req, res) {
     const cards = await User.find({ _id: req.userId })
@@ -29,6 +59,13 @@ module.exports = {
   async store(req, res) {
     // Find List
     const list = await List.findById(req.body._list);
+    if (!list) {
+      return res
+        .status(HTTPCode.BAD_REQUEST)
+        .send({ error: 'Lista não encontrada' });
+    }
+    // Validate Card
+    validateAndRedirect(req, res);
     // Create card
     const card = await Card.create(req.body);
     // Verify if card was created
@@ -52,7 +89,8 @@ module.exports = {
     const cardId = req.params.id;
     // Find Card
     const card = await Card.findById(cardId);
-
+    // Validate Card Update Request
+    validateAndRedirect(req, res);
     // Verifica se há lista na requisição e atualiza
     if (req.body._list) {
       const listId = req.body._list;
@@ -70,7 +108,6 @@ module.exports = {
         newList.save();
       }
     }
-
     // Update Card
     const cardUpdated = await Card.findByIdAndUpdate(cardId, req.body, {
       new: true,
