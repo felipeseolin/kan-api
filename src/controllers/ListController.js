@@ -119,4 +119,9 @@ module.exports = {
 
     return res.status(HTTPCode.OK).json(list);
   },
+  async listFromBoard(req, res) {
+    const { id } = req.params;
+    const lists = await List.find({ _board: id });
+    return res.json(lists);
+  },
 };

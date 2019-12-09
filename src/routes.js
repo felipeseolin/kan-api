@@ -67,6 +67,11 @@ routes.delete(
   [auth, uncache(constants.LISTS_BOARDS)],
   ListController.destroy
 );
+routes.get(
+  '/boards/:id/lists',
+  [auth, cache(constants.LISTS_FROM_BOARD)],
+  ListController.listFromBoard
+);
 // Cards
 routes.get(
   '/cards',
