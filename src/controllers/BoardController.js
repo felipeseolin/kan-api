@@ -35,7 +35,7 @@ function validateAndRedirect(req, res) {
   const { name, description } = req.body;
   const error = validate(name, description);
   if (error.length > 0) {
-    res.status(HTTPCode.BAD_REQUEST).send({ error });
+    return res.status(HTTPCode.BAD_REQUEST).send({ error });
   }
 }
 
