@@ -1,7 +1,9 @@
-const app = require('../src/app');
 const supertest = require('supertest');
+const app = require('../src/app');
 
 const req = supertest(app);
+
+const { token } = global;
 
 const BOARD_TO_BE_CREATED = {
   name: 'QUADRO DE TESTE',
@@ -11,7 +13,10 @@ let newBoard = null;
 // CREATE
 describe('POST /boards', () => {
   it('Creates a new board', async done => {
-    const res = await req.post('/api/boards').send(BOARD_TO_BE_CREATED);
+    const res = await req
+      .post('/api/boards')
+      .send(BOARD_TO_BE_CREATED)
+      .set(token);
     newBoard = res.body;
     // Check the status code
     expect(res.status).toBe(201);
@@ -28,7 +33,7 @@ describe('POST /boards', () => {
 // SHOW
 describe('GET /boards/:id', () => {
   it('Shows the board', async done => {
-    const res = await req.get(`/api/boards/${newBoard._id}`);
+    const res = await req.get(`/api/boards/${newBoard._id}`).set(token);
     const showBoard = res.body;
     // Check the status code
     expect(res.status).toBe(200);
@@ -56,6 +61,7 @@ describe('PATCH /boards/:id', () => {
   it('Updates the board', async done => {
     const res = await req
       .patch(`/api/boards/${newBoard._id}`)
+      .set(token)
       .send(BOARD_TO_BE_UPDATED);
     updatedBoard = res.body;
     // Check the status code
@@ -77,7 +83,7 @@ describe('PATCH /boards/:id', () => {
 // List
 describe('GET /boards', () => {
   it('Lists all boards', async done => {
-    const res = await req.get('/api/boards');
+    const res = await req.get('/api/boards').set(token);
     const allBoards = res.body;
     const lastBoard = allBoards.pop();
     // Check the status code
@@ -100,7 +106,7 @@ describe('GET /boards', () => {
 // Delete
 describe('DELETE /boards/:id', () => {
   it('Delete the board', async done => {
-    const res = await req.delete(`/api/boards/${updatedBoard._id}`);
+    const res = await req.delete(`/api/boards/${updatedBoard._id}`).set(token);
     const deletedBoard = res.body;
     // Check the status code
     expect(res.status).toBe(200);

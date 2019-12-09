@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
-const Bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
+const authConfig = require('../config/auth');
 const UserInit = require('../models/User');
 const BoardInit = require('../models/Board');
 const ListInit = require('../models/List');
@@ -11,86 +13,86 @@ const Board = mongoose.model('Board');
 const List = mongoose.model('List');
 const Card = mongoose.model('Card');
 
-function validateEmail(email) {
-  var re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-  return re.test(String(email)
-    .toLowerCase());
+const HTTPCode = require('../utils/HTTPCode');
+
+function generateToken(params = {}) {
+  return jwt.sign(params, authConfig.secret, {
+    expiresIn: 86400,
+  });
 }
 
-function validate(name, email, password) {
+function validate(name, email, password, passwordConfirm) {
   let errors = [];
 
   if (!name || name.trim().length === 0) {
-    errors = [...errors, 'Deve-se inserir um nome.'];
+    errors = [...errors, 'Um nome é necessário.'];
   }
-  if (name && name.length > 100) {
-    errors = [...errors, 'O nome deve ter ao máximo 100 caracteres.'];
+  if (name.length < 5) {
+    errors = [...errors, 'Um nome válido deve ter ao menos 5 caracteres.'];
   }
-  if (name && name.length < 2) {
-    errors = [...errors, 'O nome deve ter ao mínimo 2 caracteres.'];
+  if (!/^[a-zA-Z ]+$/.test(name)) {
+    errors = [...errors, 'Forneça um nome válido.'];
   }
   if (!email || email.trim().length === 0) {
-    errors = [...errors, 'Deve-se inserir um e-mail.'];
+    errors = [...errors, 'É necessário inserir um e-mail.'];
   }
-  if (!validateEmail(email)) {
-    errors = [...errors, 'O e-mail inserido é inválido.'];
+  if (!/\S+@\S+\.\S+/.test(email)) {
+    errors = [...errors, 'Forneça um e-mail válido.'];
+  }
+  if (password !== passwordConfirm) {
+    errors = [...errors, 'As senhas fornecidas não conferem.'];
   }
   if (!password || password.trim().length === 0) {
-    errors = [...errors, 'Deve-se inserir uma senha.'];
-  }
-  if (password && password.length > 15) {
-    errors = [...errors, 'A senha deve ter no máximo 15 caracteres.'];
+    errors = [...errors, 'É necessário inserir uma senha.'];
   }
   if (password && password.length < 6) {
-    errors = [...errors, 'A senha deve ter no mínimo 6 caracteres.'];
+    errors = [...errors, 'A senha deve possuir ao mínimo 6 caracteres.'];
   }
+
   return errors;
 }
 
 module.exports = {
-  async store(req, res) {
-    // Validation
-    const errors = validate(req.body.name, req.body.email, req.body.password);
-    if (errors.length > 0) {
-      req.flash('error', errors);
-      return res.redirect('back');
+  async register(req, res) {
+    const { name, email, password, passwordConfirm } = req.body;
+    if (await User.findOne({ email })) {
+      return res
+        .status(HTTPCode.BAD_REQUEST)
+        .send({ error: 'User already exists' });
     }
-    const users = await User.find({ email: req.body.email });
-    console.log(users);
-    if (users && users.length > 0) {
-      req.flash('error', ['Já há um email cadastrado neste endereço.']);
-      return res.redirect('back');
+    // Validate User
+    console.log(password);
+    console.log(passwordConfirm);
+    const error = validate(name, email, password, passwordConfirm);
+    if (error.length > 0) {
+      return res.status(HTTPCode.BAD_REQUEST).send({ error });
     }
-
-    req.body.password = Bcrypt.hashSync(req.body.password, 10);
+    // Create User
     const user = await User.create(req.body);
+    // Verify if the user is saved
     if (!user) {
-      return res.render('errror');
+      return res.sendStatus(HTTPCode.BAD_REQUEST);
     }
-    return res.redirect('/boards');
+    user.password = undefined;
+
+    const token = generateToken({ id: user.id });
+    return res.status(HTTPCode.CREATED).json({ user, token });
   },
-  form(req, res) {
-    return res.render('user.create.handlebars', {
-      title: 'Novo usuário',
-      formAction: '/users/new',
-    });
-  },
-  async login(req, res) {
-    try {
-      const user = await User.findOne({ email: req.body.email })
-        .exec();
-      if (!user) {
-        return res.status(400)
-          .send('The user does not exist');
-      }
-      if (!Bcrypt.compareSync(req.body.password, user.password)) {
-        return res.status(400)
-          .send('The password is invalid');
-      }
-      res.send('The username and password combination is correct!');
-    } catch (error) {
-      res.status(500)
-        .send(error);
+  async authenticate(req, res) {
+    const { email, password } = req.body;
+    // Find user
+    const user = await User.findOne({ email }).select('+password');
+    // User not found
+    if (!user) {
+      res.status(HTTPCode.BAD_REQUEST).send({ error: 'User not found' });
     }
+    // Password does not match
+    if (!(await bcrypt.compare(password, user.password))) {
+      res.status(HTTPCode.BAD_REQUEST).send({ error: 'Invalid password' });
+    }
+    user.password = undefined;
+
+    const token = generateToken({ id: user.id });
+    return res.status(HTTPCode.OK).json({ user, token });
   },
 };
