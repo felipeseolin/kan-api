@@ -76,11 +76,11 @@ module.exports = {
     return res.status(HTTPCode.OK).json(board);
   },
   async update(req, res) {
+    const { _user, user, ...rest } = req.params;
     // Validate Board
     validateAndRedirect(req, res);
-    req.params._user = undefined;
     // Update Board
-    const board = await Board.findByIdAndUpdate(req.params.id, req.body, {
+    const board = await Board.findByIdAndUpdate(req.params.id, rest, {
       new: true,
     });
     // Verify if the board is saved
